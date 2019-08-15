@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'CECapture_Example' do
+  pod 'CECapture', :path => '../'
+
+  target 'CECapture_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
