@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		049918C72313D11600F00615 /* CEButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049918C62313D11600F00615 /* CEButton.swift */; };
+		049918C92313D17C00F00615 /* CEView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049918C82313D17C00F00615 /* CEView.swift */; };
 		15A84F07ABE1D85E386D12D7 /* Pods_CECapture_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C69A936892907FCE376CC00 /* Pods_CECapture_Tests.framework */; };
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
 		607FACD81AFB9204008FA782 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD71AFB9204008FA782 /* ViewController.swift */; };
@@ -28,6 +30,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		049918C62313D11600F00615 /* CEButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CEButton.swift; sourceTree = "<group>"; };
+		049918C82313D17C00F00615 /* CEView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CEView.swift; sourceTree = "<group>"; };
 		05C7E7941B432B72411823FC /* Pods-CECapture_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CECapture_Tests.release.xcconfig"; path = "Target Support Files/Pods-CECapture_Tests/Pods-CECapture_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		1F5562AB188A4C6B8DE3EF43 /* Pods-CECapture_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CECapture_Example.debug.xcconfig"; path = "Target Support Files/Pods-CECapture_Example/Pods-CECapture_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* CECapture_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CECapture_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -43,10 +47,10 @@
 		7C69A936892907FCE376CC00 /* Pods_CECapture_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CECapture_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		90A0752212A44C69F7AC7D87 /* Pods_CECapture_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CECapture_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4FFB4203A01F1109C9AFE65 /* Pods-CECapture_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CECapture_Example.release.xcconfig"; path = "Target Support Files/Pods-CECapture_Example/Pods-CECapture_Example.release.xcconfig"; sourceTree = "<group>"; };
-		ACA16F8F2ECE9352F27AEEEF /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		B15632511355F8400A7DF42A /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		ACA16F8F2ECE9352F27AEEEF /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		B15632511355F8400A7DF42A /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		C35389F20D80EABD5A63CCB5 /* Pods-CECapture_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CECapture_Tests.debug.xcconfig"; path = "Target Support Files/Pods-CECapture_Tests/Pods-CECapture_Tests.debug.xcconfig"; sourceTree = "<group>"; };
-		FD8C9B1BA49B2142386B02BC /* CECapture.podspec */ = {isa = PBXFileReference; includeInIndex = 1; name = CECapture.podspec; path = ../CECapture.podspec; sourceTree = "<group>"; };
+		FD8C9B1BA49B2142386B02BC /* CECapture.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = CECapture.podspec; path = ../CECapture.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +81,6 @@
 				C35389F20D80EABD5A63CCB5 /* Pods-CECapture_Tests.debug.xcconfig */,
 				05C7E7941B432B72411823FC /* Pods-CECapture_Tests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -111,6 +114,8 @@
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
 				607FACD31AFB9204008FA782 /* Supporting Files */,
+				049918C62313D11600F00615 /* CEButton.swift */,
+				049918C82313D17C00F00615 /* CEView.swift */,
 			);
 			name = "Example for CECapture";
 			path = CECapture;
@@ -213,10 +218,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = 7562VV969B;
 						LastSwiftMigration = 0900;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = 7562VV969B;
 						LastSwiftMigration = 0900;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -227,6 +234,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -293,13 +301,19 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-CECapture_Example/Pods-CECapture_Example-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
+				"${BUILT_PRODUCTS_DIR}/Aspects/Aspects.framework",
 				"${BUILT_PRODUCTS_DIR}/CECapture/CECapture.framework",
+				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Aspects.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CECapture.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -337,6 +351,8 @@
 			files = (
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
+				049918C92313D17C00F00615 /* CEView.swift in Sources */,
+				049918C72313D11600F00615 /* CEButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +498,7 @@
 			baseConfigurationReference = 1F5562AB188A4C6B8DE3EF43 /* Pods-CECapture_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 7562VV969B;
 				INFOPLIST_FILE = CECapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -497,6 +514,7 @@
 			baseConfigurationReference = A4FFB4203A01F1109C9AFE65 /* Pods-CECapture_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 7562VV969B;
 				INFOPLIST_FILE = CECapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -511,6 +529,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C35389F20D80EABD5A63CCB5 /* Pods-CECapture_Tests.debug.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 7562VV969B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -533,6 +552,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 05C7E7941B432B72411823FC /* Pods-CECapture_Tests.release.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 7562VV969B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",

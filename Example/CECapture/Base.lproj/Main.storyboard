@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -20,7 +20,40 @@
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YQQ-Bj-MAZ" customClass="CEButton" customModule="CECapture_Example" customModuleProvider="target">
+                                <rect key="frame" x="164.5" y="75" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="buttion1OutsideClicked:" destination="vXZ-lx-hvc" eventType="touchUpOutside" id="iq4-UP-oON"/>
+                                    <action selector="button1Clicked:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="Zzp-om-P45"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DBZ-1r-Oup" customClass="CEButton" customModule="CECapture_Example" customModuleProvider="target">
+                                <rect key="frame" x="164.5" y="137" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="button2Clicked:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="ENc-yT-SsS"/>
+                                </connections>
+                            </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ehD-eX-2RU" customClass="CEView" customModule="CECapture_Example" customModuleProvider="target">
+                                <rect key="frame" x="67.5" y="269.5" width="240" height="128"/>
+                                <color key="backgroundColor" red="0.20392156859999999" green="0.47450980390000003" blue="0.98823529409999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="240" id="eGJ-gb-fMZ"/>
+                                    <constraint firstAttribute="height" constant="128" id="scc-1u-wSY"/>
+                                </constraints>
+                            </view>
+                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="ehD-eX-2RU" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="c72-Qb-FCX"/>
+                            <constraint firstItem="DBZ-1r-Oup" firstAttribute="top" secondItem="YQQ-Bj-MAZ" secondAttribute="bottom" constant="32" id="hJV-XW-OmK"/>
+                            <constraint firstItem="DBZ-1r-Oup" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="iae-tU-sIX"/>
+                            <constraint firstItem="ehD-eX-2RU" firstAttribute="centerY" secondItem="kh9-bI-dsS" secondAttribute="centerY" id="vdd-XU-RQH"/>
+                            <constraint firstItem="YQQ-Bj-MAZ" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="wMe-LK-aML"/>
+                            <constraint firstItem="YQQ-Bj-MAZ" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="55" id="wfp-vL-J78"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>

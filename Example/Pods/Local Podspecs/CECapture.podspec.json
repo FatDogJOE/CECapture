@@ -1,0 +1,33 @@
+{
+  "name": "CECapture",
+  "version": "0.1.0",
+  "summary": "A short description of CECapture.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/Joe/CECapture",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "Joe": "likethephoenix@163.com"
+  },
+  "source": {
+    "git": "https://github.com/Joe/CECapture.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "CECapture/Classes/**/*",
+  "dependencies": {
+    "Aspects": [
+      "~> 1.4.1"
+    ],
+    "RxSwift": [
+      "~> 5.0.0"
+    ],
+    "Alamofire": [
+
+    ]
+  }
+}

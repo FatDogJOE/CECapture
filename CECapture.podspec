@@ -31,7 +31,12 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '8.0'
 
   s.source_files = 'CECapture/Classes/**/*'
-  
+
+  s.dependency 'Aspects', '~> 1.4.1'
+  s.dependency 'RxSwift', '~> 5.0.0'
+  s.dependency 'Alamofire'
+  #s.dependency 'SSZipArchive', '~> 2.2.2'
+
   # s.resource_bundles = {
   #   'CECapture' => ['CECapture/Assets/*.png']
   # }
