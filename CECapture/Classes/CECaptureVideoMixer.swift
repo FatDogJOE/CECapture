@@ -7,6 +7,7 @@
 
 import UIKit
 import VideoToolbox
+import RxSwift
 
 enum VideoMixerSessionError : Error {
     case initFailed
@@ -22,12 +23,17 @@ enum PixelBufferError : Error {
     case invalidPixcelBuffer
 }
 
-var count = 0
+
+enum VideoMixerTaskStatus {
+    case waiting
+    case ready
+    case encoding
+    case end
+}
+
+typealias VideoMixerTaskStatusHandler = ((CECaptureVideoMixTask)->(Void))
 
 func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeMutableRawPointer?, status:OSStatus, infoFlags:VTEncodeInfoFlags, sampleBuffer:CMSampleBuffer?) -> Void {
-    
-    print("count:\(count)")
-    count += 1
     
     guard callbackRef != nil else {
         return
@@ -133,7 +139,6 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
         
     }
     
-
 }
 
 class CECaptureVideoMixTask : NSObject {
@@ -141,18 +146,27 @@ class CECaptureVideoMixTask : NSObject {
     var width : Int32 = 0
     var height : Int32 = 0
     var fps : Int8 = 30
-    var bitrate : Int = 2048 << 10
     var fileURL : URL?
     var fileHandle : FileHandle?
     
-    var session : VTCompressionSession?
+    var status : VideoMixerTaskStatus = .waiting {
+        didSet {
+            self.statusHandler?(self)
+        }
+    }
     
-    func setupCompressionSession(width:Int32,height:Int32,fps:Int8,bitrate:Int, filePath:String) throws {
+    
+    var session : VTCompressionSession?
+    var images : [UIImage] = []
+    
+    var statusHandler : VideoMixerTaskStatusHandler?
+    
+    func setupCompressionSession(width:Int32,height:Int32,fps:Int8, images:[UIImage], filePath:String) throws {
         
         self.width = width
         self.height = height
         self.fps = fps
-        self.bitrate = bitrate << 10
+        self.images = images
         self.fileURL = URL(fileURLWithPath: filePath)
         
         try? FileManager.default.removeItem(at: self.fileURL!)
@@ -161,6 +175,7 @@ class CECaptureVideoMixTask : NSObject {
         do {
             self.fileHandle = try FileHandle(forWritingTo: self.fileURL!)
         } catch {
+            self.status = .end
             throw error
         }
         
@@ -179,23 +194,27 @@ class CECaptureVideoMixTask : NSObject {
         
         
         if status != noErr {
+            self.status = .end
             throw VideoMixerSessionError.initFailed
         }
         
         self.session = session
-        
+        self.status = .ready
     }
     
     
-    func startEncodeImages(images:[UIImage]) throws  {
+    func startEncode() throws  {
         
         guard self.session != nil else {
+            self.status = .end
             throw VideoMixerEncodeError.sessionInvailed
         }
         
+        
+        self.status = .encoding
         self.setupSessionProperties()
         
-        for (index,image) in images.enumerated() {
+        for (index,image) in self.images.enumerated() {
             
             do {
                 
@@ -219,15 +238,21 @@ class CECaptureVideoMixTask : NSObject {
                     
                     
                     if status != noErr {
+                        self.status = .end
                         throw VideoMixerEncodeError.encodeFailed
                     }
                     
                 }
                 
             } catch {
-                
+                self.status = .end
+                throw error
             }
             
+        }
+        
+        DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 1) {
+            self.stopEncode()
         }
         
     }
@@ -237,6 +262,7 @@ class CECaptureVideoMixTask : NSObject {
         VTCompressionSessionInvalidate(self.session!)
         self.fileHandle?.closeFile()
         self.fileHandle = nil
+        self.status = .end
     }
     
     func write(encoded data:Data) {
@@ -365,18 +391,56 @@ class CECaptureVideoMixer: NSObject {
         
         do {
             try task.setupCompressionSession(width: Int32(img.size.width),
-                                             height: Int32(img.size.height),
-                                             fps: 25,
-                                             bitrate: 2048,
-                                             filePath: desPath)
-            try task.startEncodeImages(images: images)
+                                                                height: Int32(img.size.height),
+                                                                fps: 25,
+                                                                images: images,
+                                                                filePath: desPath)
+            
+            task.statusHandler = { [weak self] (encoder) in
+                
+                if encoder.status == .end {
+                    self?.nextTask()
+                }
+                
+            }
+            
         } catch {
             throw error
         }
         
+        let shouldStart = (self.tasks.count == 0)
+        
+        objc_sync_enter(self.tasks)
+        
         tasks.append(task)
+        
+        objc_sync_exit(self.tasks)
+        
+        if shouldStart {
+            self.nextTask()
+        }
         
         return task
     }
+    
+    func nextTask() {
+        
+        if let task = tasks.first {
+            do {
+                try task.startEncode()
+                
+                objc_sync_enter(self.tasks)
+                
+                self.tasks.removeFirst()
+                
+                objc_sync_exit(self.tasks)
+                
+            } catch {
+                
+            }
+        }
+    }
+    
+    
 
 }

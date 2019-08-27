@@ -209,8 +209,8 @@ class CECaptureUploader: NSObject {
     
    
     @objc func applicationDidfinishLaunch() {
-        self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
-        self.makeDirIfNotExist(path: self.currentFolderPath)
+ //       self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
+ //       self.makeDirIfNotExist(path: self.currentFolderPath)
 //        self.convertScreenshotsToGif()
         self.convertScreenshotsToVideo()
     }
