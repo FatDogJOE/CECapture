@@ -14,7 +14,6 @@ class CECaptureUploader: NSObject {
     static let share : CECaptureUploader = { CECaptureUploader() }()
     
     let disposeBag = DisposeBag()
-    let convert = CECaptureVideoGenerator()
     let videoMixer = CECaptureVideoMixer()
     let gifMixer = CECaptureGifMixer()
     
@@ -28,6 +27,9 @@ class CECaptureUploader: NSObject {
     var gifFolder : String {
         return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! + "/" + "GIF".md5()
     }
+    var videoFolder : String {
+        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! + "/" + "Videos".md5()
+    }
 
     func setup() {
         self.registerMixEvent()
@@ -40,6 +42,7 @@ class CECaptureUploader: NSObject {
         
         self.makeDirIfNotExist(path: self.screenshotsFolder)
         self.makeDirIfNotExist(path: self.gifFolder)
+        self.makeDirIfNotExist(path: self.videoFolder)
     }
     
     func makeDirIfNotExist(path:String) {
@@ -57,7 +60,7 @@ class CECaptureUploader: NSObject {
     
     func registerMixEvent() {
         
-        CECaptureMix.share.screenShotSubject.asObserver().buffer(timeSpan: 10, count: 5, scheduler:  MainScheduler.instance).subscribe(onNext: {[weak self] (images) in
+        CECaptureMix.share.screenShotSubject.asObserver().buffer(timeSpan: 3, count: 5, scheduler:  MainScheduler.instance).subscribe(onNext: {[weak self] (images) in
             self?.handleMixedScreenshots(screenshots: images)
         }).disposed(by: self.disposeBag)
         
@@ -131,21 +134,14 @@ class CECaptureUploader: NSObject {
                 
                 if images.count > 0 {
                     
-                    let img = images.first!
-                    
                     do {
                         
-                        try self.videoMixer.setupCompressionSession(width: Int32(img.size.width),
-                                                                     height: Int32(img.size.height),
-                                                                     fps: 30,
-                                                                     bitrate: 2048,
-                                                                     filePath: self.screenshotsFolder + "/" + fileName + ".h264")
-                        try self.videoMixer.startEncodeImages(images: images)
+                       _ = try self.videoMixer.startTask(with: images,
+                                                         desPath: self.videoFolder + "/" + fileName + ".h264")
                         
                     } catch {
                         
                     }
-                    
                     
                 }
             }
@@ -215,7 +211,8 @@ class CECaptureUploader: NSObject {
     @objc func applicationDidfinishLaunch() {
         self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
         self.makeDirIfNotExist(path: self.currentFolderPath)
-        self.convertScreenshotsToGif()
+//        self.convertScreenshotsToGif()
+        self.convertScreenshotsToVideo()
     }
     
     @objc func applicationDidEnterBackground() {
@@ -225,7 +222,8 @@ class CECaptureUploader: NSObject {
     @objc func applicationWillEnterForground() {
         self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
         self.makeDirIfNotExist(path: self.currentFolderPath)
-        self.convertScreenshotsToGif()
+        self.convertScreenshotsToVideo()
+        //self.convertScreenshotsToGif()
     }
     
 }

@@ -26,7 +26,7 @@ class CECaptureMix: NSObject {
     
     func registerEvent() {
         
-        CECaptureEvent.share.eventSubject.buffer(timeSpan: 5, count: 10, scheduler: MainScheduler.instance).subscribe(onNext: {[weak self] (events) in
+        CECaptureEvent.share.eventSubject.buffer(timeSpan: 3, count: 10, scheduler: MainScheduler.instance).subscribe(onNext: {[weak self] (events) in
             self?.handleCaptureEvents(events: events)
         }).disposed(by: self.disposeBag)
         

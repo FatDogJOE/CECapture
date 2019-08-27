@@ -17,7 +17,17 @@ enum VideoMixerEncodeError : Error {
     case encodeFailed
 }
 
+enum PixelBufferError : Error {
+    case imageIsNil
+    case invalidPixcelBuffer
+}
+
+var count = 0
+
 func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeMutableRawPointer?, status:OSStatus, infoFlags:VTEncodeInfoFlags, sampleBuffer:CMSampleBuffer?) -> Void {
+    
+    print("count:\(count)")
+    count += 1
     
     guard callbackRef != nil else {
         return
@@ -31,7 +41,7 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
         return
     }
     
-    let mixer = Unmanaged<CECaptureVideoMixer>.fromOpaque(callbackRef!).takeUnretainedValue()
+    let task = Unmanaged<CECaptureVideoMixTask>.fromOpaque(callbackRef!).takeUnretainedValue()
     
     let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer!, false) as! Array<Any>
     
@@ -52,6 +62,7 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
         
         var spsNALUHeaderLength : Int32 = 0
         var ppsNALUHeaderLehgth : Int32 = 0
+        
         
         let format = CMSampleBufferGetFormatDescription(sampleBuffer!)
         
@@ -79,7 +90,8 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
         let ppsBuffer = UnsafeBufferPointer<UInt8>(start: ppsPtr, count: ppsSize)
         let ppsData = Data(buffer: ppsBuffer)
         
-        mixer.write(pps: ppsData, sps: spsData)
+        task.write(pps: ppsData, sps: spsData)
+        
     }
     
     let dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer!)
@@ -96,18 +108,26 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
     
     if blockStatus == noErr {
         
-        let dataBufferPtr : UnsafeMutableBufferPointer<UInt8> = UnsafeMutableBufferPointer(start: nil, count: 0)
+        var bufferOffset : size_t = 0
         
-        var bufferOffset = 0
-        
-        let AVCCHeaderLength = 4
+        let AVCCHeaderLength : size_t = 4
         
         while (bufferOffset < totalLength - AVCCHeaderLength) {
             
             var NALUnitLength : UInt32 = 0
             
             // Read the NAL unit lengh
+            memcpy(&NALUnitLength, dataPtr! + bufferOffset, AVCCHeaderLength)
             
+            NALUnitLength = CFSwapInt32BigToHost(NALUnitLength)
+            
+            let naluPtr = UnsafeRawPointer(dataPtr! + AVCCHeaderLength + bufferOffset)
+            
+            let naluData = Data(bytes: naluPtr, count: Int(NALUnitLength))
+            
+            task.write(encoded: naluData)
+            
+            bufferOffset += AVCCHeaderLength + size_t(NALUnitLength)
             
         }
         
@@ -116,8 +136,8 @@ func outputCallback(callbackRef:UnsafeMutableRawPointer?, sourceFrameRef:UnsafeM
 
 }
 
-class CECaptureVideoMixer: NSObject {
-
+class CECaptureVideoMixTask : NSObject {
+    
     var width : Int32 = 0
     var height : Int32 = 0
     var fps : Int8 = 30
@@ -144,7 +164,7 @@ class CECaptureVideoMixer: NSObject {
             throw error
         }
         
-        let session : UnsafeMutablePointer<VTCompressionSession?> = UnsafeMutablePointer.allocate(capacity: 1)
+        var session :VTCompressionSession?
         
         let status = VTCompressionSessionCreate(nil,
                                                 self.width,
@@ -154,21 +174,17 @@ class CECaptureVideoMixer: NSObject {
                                                 nil,
                                                 nil,
                                                 outputCallback,
-                                                Unmanaged<CECaptureVideoMixer>.passRetained(self).toOpaque(),
-                                                session)
+                                                Unmanaged<CECaptureVideoMixTask>.passRetained(self).toOpaque(),
+                                                &session)
         
-        defer {
-            session.deallocate()
-        }
         
         if status != noErr {
             throw VideoMixerSessionError.initFailed
         }
         
-        self.session = session.pointee
+        self.session = session
         
     }
-    
     
     
     func startEncodeImages(images:[UIImage]) throws  {
@@ -179,27 +195,33 @@ class CECaptureVideoMixer: NSObject {
         
         self.setupSessionProperties()
         
-        for image in images {
+        for (index,image) in images.enumerated() {
             
             do {
                 
-                let sampleBuffer = try self.pixelBuffer(for: image.cgImage)
+                let sampleBuffer = try self.pixelBuffer(for: image.cgImage, index: index)
                 
                 let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-                let presentationTimestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
                 
-                let encodeProperties = [kVTEncodeFrameOptionKey_ForceKeyFrame:true] as CFDictionary
-                
-                let status = VTCompressionSessionEncodeFrame(self.session!,
-                                                             imageBuffer!,
-                                                             presentationTimestamp,
-                                                             kCMTimeInvalid,
-                                                             encodeProperties,
-                                                             nil,
-                                                             nil)
-                
-                if status != noErr {
-                    throw VideoMixerEncodeError.encodeFailed
+                for i in 1 ... self.fps {
+                    
+                    let unit : Int64 = 600 / Int64(self.fps)
+                    
+                    let presentationTimestamp = CMTimeMake(600 * Int64(index) + Int64(i) * unit , 600)
+                    
+                    let status = VTCompressionSessionEncodeFrame(self.session!,
+                                                                 imageBuffer!,
+                                                                 presentationTimestamp,
+                                                                 kCMTimeInvalid,
+                                                                 nil,
+                                                                 nil,
+                                                                 nil)
+                    
+                    
+                    if status != noErr {
+                        throw VideoMixerEncodeError.encodeFailed
+                    }
+                    
                 }
                 
             } catch {
@@ -210,11 +232,28 @@ class CECaptureVideoMixer: NSObject {
         
     }
     
+    func stopEncode() {
+        VTCompressionSessionCompleteFrames(self.session!, kCMTimeInvalid)
+        VTCompressionSessionInvalidate(self.session!)
+        self.fileHandle?.closeFile()
+        self.fileHandle = nil
+    }
+    
+    func write(encoded data:Data) {
+        
+        let startCode:[UInt8] = [0x00,0x00,0x00,0x01]
+        
+        let byteHeader = Data(bytes: startCode)
+        
+        self.fileHandle?.write(byteHeader)
+        self.fileHandle?.write(data)
+    }
+    
     func write(pps pData:Data, sps sData:Data) {
         
-        let NALHeader:[UInt8] = [0x00,0x00,0x00,0x01]
+        let startCode:[UInt8] = [0x00,0x00,0x00,0x01]
         
-        let byteHeader = Data(bytes: NALHeader)
+        let byteHeader = Data(bytes: startCode)
         
         self.fileHandle?.write(byteHeader)
         self.fileHandle?.write(sData)
@@ -226,12 +265,13 @@ class CECaptureVideoMixer: NSObject {
     private func setupSessionProperties() {
         
         //设置关键帧间隔
-        let iframeRef = CFNumberCreate(kCFAllocatorDefault, CFNumberType.intType, &self.fps)
-        VTSessionSetProperty(self.session!, kVTCompressionPropertyKey_MaxKeyFrameInterval, iframeRef)
+        VTSessionSetProperty(self.session!, kVTCompressionPropertyKey_MaxKeyFrameInterval, self.fps as CFNumber)
         
         //设置期望帧率
-        let fpsRef = CFNumberCreate(kCFAllocatorDefault, CFNumberType.intType, &self.fps)
-        VTSessionSetProperty(self.session!, kVTCompressionPropertyKey_ExpectedFrameRate, fpsRef)
+        VTSessionSetProperty(self.session!, kVTCompressionPropertyKey_ExpectedFrameRate, self.fps as CFNumber)
+        
+        //关键帧持续时间
+        VTSessionSetProperty(self.session!, kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, 1 as CFNumber)
         
         //设置码率
         var bigRate = self.width * self.height * 3 * 4 * 8
@@ -247,27 +287,25 @@ class CECaptureVideoMixer: NSObject {
         
     }
     
-    private func pixelBuffer(for image:CGImage?) throws -> CMSampleBuffer {
+    private func pixelBuffer(for image:CGImage?, index:Int) throws -> CMSampleBuffer {
         
         guard image != nil else {
             throw PixelBufferError.imageIsNil
         }
         
-        
-        
         let options = [kCVPixelBufferCGImageCompatibilityKey:true,kCVPixelBufferCGBitmapContextCompatibilityKey:true] as CFDictionary
         
-        let buffer : UnsafeMutablePointer<CVPixelBuffer?> = UnsafeMutablePointer<CVPixelBuffer?>.allocate(capacity: 1)
+        var buffer : CVPixelBuffer?
         
-        CVPixelBufferCreate(kCFAllocatorDefault, image!.width, image!.height, kCVPixelFormatType_32ARGB, options, buffer)
+        CVPixelBufferCreate(kCFAllocatorDefault, image!.width, image!.height, kCVPixelFormatType_32ARGB, options, &buffer)
         
-        guard buffer.pointee != nil else {
+        guard buffer != nil else {
             throw PixelBufferError.invalidPixcelBuffer
         }
         
-        CVPixelBufferLockBaseAddress(buffer.pointee!, CVPixelBufferLockFlags.readOnly)
+        CVPixelBufferLockBaseAddress(buffer!, CVPixelBufferLockFlags.readOnly)
         
-        let pxData = CVPixelBufferGetBaseAddress(buffer.pointee!)
+        let pxData = CVPixelBufferGetBaseAddress(buffer!)
         
         guard pxData != nil else {
             throw PixelBufferError.invalidPixcelBuffer
@@ -285,36 +323,60 @@ class CECaptureVideoMixer: NSObject {
         
         context?.draw(image!, in: CGRect(x: 0, y: 0, width: image!.width, height: image!.height))
         
-        CVPixelBufferUnlockBaseAddress(buffer.pointee!, CVPixelBufferLockFlags.readOnly)
+        CVPixelBufferUnlockBaseAddress(buffer!, CVPixelBufferLockFlags.readOnly)
         
+        var videoInfo : CMVideoFormatDescription?
         
-        let videoInfo : UnsafeMutablePointer<CMVideoFormatDescription?> = UnsafeMutablePointer.allocate(capacity: 1)
+        CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, buffer!, &videoInfo)
         
-        CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, buffer.pointee!, videoInfo)
+        var timing = CMSampleTimingInfo(duration: kCMTimeInvalid, presentationTimeStamp: kCMTimeInvalid, decodeTimeStamp: kCMTimeInvalid)
         
-        let frameTime = CMTimeMake(1, 1)
-        
-        var timing = CMSampleTimingInfo(duration: frameTime, presentationTimeStamp: frameTime, decodeTimeStamp: kCMTimeInvalid)
-        
-        let sampleBuffer : UnsafeMutablePointer<CMSampleBuffer?> = UnsafeMutablePointer.allocate(capacity: 1)
+        var sampleBuffer : CMSampleBuffer?
         
         CMSampleBufferCreateForImageBuffer(kCFAllocatorDefault,
-                                           buffer.pointee!,
+                                           buffer!,
                                            true,
                                            nil,
                                            nil,
-                                           videoInfo.pointee!,
+                                           videoInfo!,
                                            &timing,
-                                           sampleBuffer)
+                                           &sampleBuffer)
         
-        defer {
-            videoInfo.deallocate()
-            buffer.deallocate()
-            sampleBuffer.deallocate()
+        
+        return sampleBuffer!
+        
+    }
+    
+}
+
+class CECaptureVideoMixer: NSObject {
+    
+    var tasks : [CECaptureVideoMixTask] = []
+    
+    func startTask(with images:[UIImage], desPath:String) throws -> CECaptureVideoMixTask? {
+        
+        guard images.count > 0 else {
+            return nil
         }
         
-        return sampleBuffer.pointee!
+        let img = images.first!
         
+        let task = CECaptureVideoMixTask()
+        
+        do {
+            try task.setupCompressionSession(width: Int32(img.size.width),
+                                             height: Int32(img.size.height),
+                                             fps: 25,
+                                             bitrate: 2048,
+                                             filePath: desPath)
+            try task.startEncodeImages(images: images)
+        } catch {
+            throw error
+        }
+        
+        tasks.append(task)
+        
+        return task
     }
 
 }
