@@ -43,6 +43,8 @@ class CECaptureUploader: NSObject {
         self.makeDirIfNotExist(path: self.screenshotsFolder)
         self.makeDirIfNotExist(path: self.gifFolder)
         self.makeDirIfNotExist(path: self.videoFolder)
+        
+        self.videoMixer.delegate = self
     }
     
     func makeDirIfNotExist(path:String) {
@@ -209,9 +211,8 @@ class CECaptureUploader: NSObject {
     
    
     @objc func applicationDidfinishLaunch() {
- //       self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
- //       self.makeDirIfNotExist(path: self.currentFolderPath)
-//        self.convertScreenshotsToGif()
+        self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
+        self.makeDirIfNotExist(path: self.currentFolderPath)
         self.convertScreenshotsToVideo()
     }
     
@@ -223,7 +224,22 @@ class CECaptureUploader: NSObject {
         self.currentCacheName = "\(Date().timeIntervalSince1970 * 1000)".md5()
         self.makeDirIfNotExist(path: self.currentFolderPath)
         self.convertScreenshotsToVideo()
-        //self.convertScreenshotsToGif()
+    }
+    
+}
+
+extension CECaptureUploader : CECaptureVideoDelegate {
+    
+    func mixer(mixer: CECaptureVideoMixer, didFinishTask task: CECaptureVideoMixTask) {
+        
+        if let folderName = task.fileURL?.lastPathComponent.replacingOccurrences(of: ".h264", with: "") {
+            
+            let forderPath = self.screenshotsFolder + "/" + folderName
+            
+            try? FileManager.default.removeItem(atPath: forderPath)
+            
+        }
+        
     }
     
 }

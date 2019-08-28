@@ -159,7 +159,7 @@ class CECaptureVideoMixTask : NSObject {
     var session : VTCompressionSession?
     var images : [UIImage] = []
     
-    var statusHandler : VideoMixerTaskStatusHandler?
+    fileprivate var statusHandler : VideoMixerTaskStatusHandler?
     
     func setupCompressionSession(width:Int32,height:Int32,fps:Int8, images:[UIImage], filePath:String) throws {
         
@@ -375,9 +375,17 @@ class CECaptureVideoMixTask : NSObject {
     
 }
 
+protocol CECaptureVideoDelegate : NSObject {
+    
+    func mixer(mixer:CECaptureVideoMixer,didFinishTask task:CECaptureVideoMixTask) -> Void
+    
+}
+
 class CECaptureVideoMixer: NSObject {
     
     var tasks : [CECaptureVideoMixTask] = []
+    
+    weak var delegate : CECaptureVideoDelegate?
     
     func startTask(with images:[UIImage], desPath:String) throws -> CECaptureVideoMixTask? {
         
@@ -399,7 +407,12 @@ class CECaptureVideoMixer: NSObject {
             task.statusHandler = { [weak self] (encoder) in
                 
                 if encoder.status == .end {
-                    self?.nextTask()
+                    
+                    if let weakSelf = self {
+                        weakSelf.delegate?.mixer(mixer: weakSelf, didFinishTask: encoder)
+                        weakSelf.nextTask()
+                    }
+                    
                 }
                 
             }
